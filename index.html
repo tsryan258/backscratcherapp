@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scratch That</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --card: #222;
+    --accent: #ff6b35;
+    --accent2: #ffbe0b;
+    --text: #f0ede8;
+    --muted: #666;
+    --border: #333;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(255,107,53,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 20%, rgba(255,190,11,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    padding: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .logo span { color: var(--accent); }
+
+  .tagline {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .label {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .interval-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .interval-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 8px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .interval-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .interval-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .custom-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+  }
+
+  .custom-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .custom-input:focus { border-color: var(--accent); }
+  .custom-input::placeholder { color: var(--muted); }
+
+  .custom-unit {
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .start-btn:hover { background: #ff8255; transform: translateY(-1px); }
+  .start-btn:active { transform: translateY(0); }
+  .start-btn.active {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .dot.active {
+    background: #4ade80;
+    box-shadow: 0 0 8px #4ade80;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .countdown {
+    margin-left: auto;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.85rem;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.8rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Alert Modal */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    padding: 24px;
+    backdrop-filter: blur(4px);
+  }
+
+  .overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .overlay.show .modal {
+    transform: scale(1);
+  }
+
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .modal-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    display: block;
+    animation: wiggle 0.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes wiggle {
+    from { transform: rotate(-5deg); }
+    to { transform: rotate(5deg); }
+  }
+
+  .modal-question {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .modal-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+  }
+
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .modal-btn {
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .modal-btn.yes {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .modal-btn.yes:hover { background: #ff8255; }
+
+  .modal-btn.no {
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .modal-btn.no:hover { color: var(--text); border-color: var(--text); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 0.75rem;
+    color: var(--text);
+    z-index: 200;
+    transition: transform 0.3s;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Log */
+  .log-list {
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .log-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .log-item:last-child { border-bottom: none; }
+  .log-item .action { color: var(--text); }
+  .log-item .scratched { color: #4ade80; }
+  .log-item .skipped { color: var(--muted); }
+
+  .empty-log {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: center;
+    padding: 16px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="logo">Scratch <span>That</span></div>
+  <div class="tagline">Back itch reminder system</div>
+
+  <div class="status-bar">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">Idle — not monitoring</span>
+    <span class="countdown" id="countdown"></span>
+  </div>
+
+  <div class="card">
+    <div class="label">Remind me every</div>
+    <div class="interval-grid">
+      <button class="interval-btn" onclick="selectInterval(1, this)">1 min</button>
+      <button class="interval-btn" onclick="selectInterval(5, this)">5 min</button>
+      <button class="interval-btn active" onclick="selectInterval(15, this)">15 min</button>
+      <button class="interval-btn" onclick="selectInterval(30, this)">30 min</button>
+      <button class="interval-btn" onclick="selectInterval(60, this)">1 hr</button>
+      <button class="interval-btn" onclick="selectInterval(120, this)">2 hr</button>
+    </div>
+    <div class="custom-row">
+      <input class="custom-input" type="number" id="customInput" placeholder="Custom..." min="1" max="1440">
+      <span class="custom-unit">minutes</span>
+      <button class="interval-btn" onclick="setCustom()" style="width:auto;padding:12px 14px;">Set</button>
+    </div>
+  </div>
+
+  <button class="start-btn" id="toggleBtn" onclick="toggleMonitoring()">START MONITORING</button>
+
+  <div class="card" style="margin-top:16px">
+    <div class="label">Session stats</div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number" id="statReminders">0</div>
+        <div class="stat-label">Reminders sent</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number" id="statScratched">0</div>
+        <div class="stat-label">Times scratched</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">Activity log</div>
+    <div class="log-list" id="logList">
+      <div class="empty-log">No activity yet</div>
+    </div>
+  </div>
+</div>
+
+<!-- Alert Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <span class="modal-icon">🦴</span>
+    <div class="modal-question">Does your back itch right now?</div>
+    <div class="modal-sub">TIME TO CHECK IN</div>
+    <div class="modal-actions">
+      <button class="modal-btn yes" onclick="respond(true)">🤌 Scratch it!</button>
+      <button class="modal-btn no" onclick="respond(false)">Nope, I'm good</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let intervalMinutes = 15;
+  let monitoring = false;
+  let timer = null;
+  let countdown = null;
+  let nextAlert = 0;
+  let reminders = 0;
+  let scratched = 0;
+  let log = [];
+
+  function selectInterval(mins, btn) {
+    intervalMinutes = mins;
+    document.querySelectorAll('.interval-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('customInput').value = '';
+    if (monitoring) restartTimer();
+  }
+
+  function setCustom() {
+    const val = parseInt(document.getElementById('customInput').value);
+    if (!val || val < 1) { showToast('Enter a valid number of minutes'); return; }
+    intervalMinutes = val;
+    document.querySelectorAll('.interval-btn').forEach(b => b.classList.remove('active'));
+    showToast(`Interval set to ${val} minute${val>1?'s':''}`);
+    if (monitoring) restartTimer();
+  }
+
+  function toggleMonitoring() {
+    monitoring = !monitoring;
+    const btn = document.getElementById('toggleBtn');
+    const dot = document.getElementById('statusDot');
+
+    if (monitoring) {
+      btn.textContent = 'STOP MONITORING';
+      btn.classList.add('active');
+      dot.classList.add('active');
+      document.getElementById('statusText').textContent = 'Monitoring active';
+      startTimer();
+    } else {
+      btn.textContent = 'START MONITORING';
+      btn.classList.remove('active');
+      dot.classList.remove('active');
+      document.getElementById('statusText').textContent = 'Idle — not monitoring';
+      document.getElementById('countdown').textContent = '';
+      clearInterval(timer);
+      clearInterval(countdown);
+    }
+  }
+
+  function startTimer() {
+    nextAlert = Date.now() + intervalMinutes * 60 * 1000;
+    updateCountdown();
+    countdown = setInterval(updateCountdown, 1000);
+    timer = setInterval(triggerAlert, intervalMinutes * 60 * 1000);
+  }
+
+  function restartTimer() {
+    clearInterval(timer);
+    clearInterval(countdown);
+    startTimer();
+  }
+
+  function updateCountdown() {
+    const remaining = Math.max(0, nextAlert - Date.now());
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    document.getElementById('countdown').textContent = 
+      `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  }
+
+  function triggerAlert() {
+    reminders++;
+    document.getElementById('statReminders').textContent = reminders;
+    document.getElementById('overlay').classList.add('show');
+    nextAlert = Date.now() + intervalMinutes * 60 * 1000;
+    clearInterval(countdown);
+    countdown = setInterval(updateCountdown, 1000);
+  }
+
+  function respond(didScratch) {
+    document.getElementById('overlay').classList.remove('show');
+    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+    if (didScratch) {
+      scratched++;
+      document.getElementById('statScratched').textContent = scratched;
+      showToast('😌 Ahhh, that\'s the spot!');
+      addLog(time, 'Scratched', true);
+    } else {
+      showToast('👍 No itch — carry on!');
+      addLog(time, 'No itch', false);
+    }
+  }
+
+  function addLog(time, action, wasScratched) {
+    log.unshift({ time, action, wasScratched });
+    const list = document.getElementById('logList');
+    list.innerHTML = log.slice(0, 10).map(item => `
+      <div class="log-item">
+        <span>${item.time}</span>
+        <span class="${item.wasScratched ? 'scratched' : 'skipped'}">${item.action}</span>
+      </div>
+    `).join('');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // Trigger demo alert after 3 seconds for preview
+  setTimeout(() => { if (!monitoring) {} }, 3000);
+</script>
+</body>
+</html>
